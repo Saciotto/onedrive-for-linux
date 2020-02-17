@@ -8,8 +8,8 @@ class OAuth2Handler(BaseHTTPRequestHandler):
             with open(html_file) as fd:
                 content = fd.read()
                 self.wfile.write(content.encode())
-        except FileNotFoundError:
-            message = 'Whooops! ' + html_file + ' not found' 
+        except IOError as err:
+            message = 'Whooops! ' + str(err)
             self.wfile.write(message.encode())
 
     def do_GET(self):
