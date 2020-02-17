@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>OneDrive for Linux</title>
+</head>
+<body>
+    <p id="token">
+    <script>
+        var url = new URL(window.location.href);
+        var code = url.searchParams.get("code");
+        token = document.querySelector("#token");
+        token.textContent = "O access_token é: " + code;
+    </script>
+</body>
+</html>
+
