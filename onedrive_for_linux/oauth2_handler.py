@@ -40,7 +40,7 @@ class OAuth2Handler(BaseHTTPRequestHandler):
 
         exp = re.search(r'[?&]code=([^&]+).*$', self.path)
         if (exp != None):
-            self.server.access_token = exp.group().split('=')[1]
+            self.server.code = exp.group().split('=')[1]
             self.wfile.write(OAuth2Handler.success_message.encode())
         else:
             self.wfile.write(OAuth2Handler.error_message.encode())

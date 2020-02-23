@@ -1,0 +1,3 @@
+
+def LoginException(Exception):
+    pass

@@ -3,7 +3,5 @@
 from onedrive import Onedrive
 
 onedrive = Onedrive()
-onedrive.new_access_token()
-print(onedrive.code)
-onedrive.redeem_token()
-print(onedrive.access_token)
+onedrive.login()
+print(onedrive._access_token)
