@@ -29,6 +29,13 @@ class Onedrive:
         self._redeem_token()
         self._logged = True
 
+    def get_defualt_root(self):
+        self._validate_login()
+        headers = {"Authorization": self._access_token}
+        conn = HTTPSConnection('graph.microsoft.com') 
+        conn.request('GET', '/v1.0/me/drive/root', headers=headers)
+        return json.load(conn.getresponse())
+
     def _ask_permission(self):
         url = (f'{Onedrive.AUTH_URL}?client_id={Onedrive.CLIENT_ID}&scope={Onedrive.SCOPES}'
                f"&response_type=code&redirect_uri={Onedrive.REDIRECT_URL}")
@@ -67,10 +74,10 @@ class Onedrive:
             raise LoginException("User must be logged in")
 
     def _is_token_expired(self):
-        self._ensure_logged()
         now = datetime.now()
         return (self._expire_date >= now)
 
-    def _validate_token(self):
+    def _validate_login(self):
+        self._ensure_logged()
         if (self._is_token_expired()):
             self._renew_token()

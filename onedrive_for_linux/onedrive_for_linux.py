@@ -4,4 +4,4 @@ from onedrive import Onedrive
 
 onedrive = Onedrive()
 onedrive.login()
-print(onedrive._access_token)
+print(onedrive.get_defualt_root())
