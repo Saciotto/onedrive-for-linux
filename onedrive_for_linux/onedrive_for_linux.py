@@ -4,4 +4,6 @@ from onedrive import Onedrive
 
 onedrive = Onedrive()
 onedrive.login()
-print(onedrive.get_defualt_root())
+
+print('Default drive:', onedrive.get_defualt_drive())
+print('Default root:', onedrive.get_defualt_root())

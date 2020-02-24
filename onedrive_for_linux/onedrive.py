@@ -29,6 +29,13 @@ class Onedrive:
         self._redeem_token()
         self._logged = True
 
+    def get_defualt_drive(self):
+        self._validate_login()
+        headers = {"Authorization": self._access_token}
+        conn = HTTPSConnection('graph.microsoft.com') 
+        conn.request('GET', '/v1.0/me/drive', headers=headers)
+        return json.load(conn.getresponse())
+
     def get_defualt_root(self):
         self._validate_login()
         headers = {"Authorization": self._access_token}
