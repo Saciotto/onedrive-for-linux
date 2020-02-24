@@ -42,6 +42,30 @@ class Onedrive:
         conn = HTTPSConnection('graph.microsoft.com') 
         conn.request('GET', '/v1.0/me/drive/root', headers=headers)
         return json.load(conn.getresponse())
+    
+    def view_changes_by_id(self, drive_id, file_id, url=None):
+        self._validate_login()
+        if(not url):
+            url = '/v1.0/drives/' + drive_id + '/items/' + file_id + '/delta'
+            url += '?select=id,name,eTag,cTag,deleted,file,folder,root,fileSystemInfo,remoteItem,parentReference'
+            print(url)
+        headers = {'Authorization': self._access_token}
+        conn = HTTPSConnection('graph.microsoft.com') 
+        conn.request('GET', url, headers=headers)
+        return json.load(conn.getresponse())
+
+    def view_changes_by_path(self, path=None, url=None):
+        self._validate_login()
+        if(not url):
+            if (path == None):
+                url = '/v1.0/me/drive/root/delta'
+            else:
+                url = '/v1.0/me/drive/root:/' + path + ':delta'
+            url += '?select=id,name,eTag,cTag,deleted,file,folder,root,fileSystemInfo,remoteItem,parentReference'
+        headers = {'Authorization': self._access_token}
+        conn = HTTPSConnection('graph.microsoft.com') 
+        conn.request('GET', url, headers=headers)
+        return json.load(conn.getresponse())
 
     def _ask_permission(self):
         url = (f'{Onedrive.AUTH_URL}?client_id={Onedrive.CLIENT_ID}&scope={Onedrive.SCOPES}'
