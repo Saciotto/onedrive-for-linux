@@ -77,6 +77,30 @@ class Onedrive:
             with request.urlopen(req) as f:
                 fp.write(f.read())
 
+    def simple_upload(self, local_path, parent_drive_id, parent_id, filename, e_tag):
+        pass
+
+    def simple_upload_replace(self, local_path, drive_id, file_id, e_tag):
+        pass
+
+    def update_by_id(self, drive_id, file_id, data, e_tag):
+        pass
+
+    def delete_by_id(self, drive_id, file_id, e_tag):
+        pass
+
+    def create_by_id(self, parent_drive_id, parent_id, item):
+        pass
+
+    def create_upload_session(self, parent_drive_dd, parent_id, filename, e_tag):
+        pass
+
+    def upload_fragment(self, upload_url, filepath, offset, offset_size, filesize):
+        pass
+
+    def request_upload_status(self, upload_url):
+        pass
+
     def _ask_permission(self):
         url = (f'{Onedrive.AUTH_URL}?client_id={Onedrive.CLIENT_ID}&scope={Onedrive.SCOPES}'
                f"&response_type=code&redirect_uri={Onedrive.REDIRECT_URL}")
