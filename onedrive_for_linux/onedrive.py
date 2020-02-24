@@ -5,6 +5,7 @@ from http.client import HTTPSConnection
 from oauth2_handler import OAuth2Handler
 from exceptions import LoginException
 from datetime import datetime, timedelta
+from urllib import request
 
 class Onedrive:
     CLIENT_ID = "c22bd74f-da4c-460d-af0a-f97aa232a908"
@@ -66,6 +67,15 @@ class Onedrive:
         conn = HTTPSConnection('graph.microsoft.com') 
         conn.request('GET', url, headers=headers)
         return json.load(conn.getresponse())
+
+    def download_by_id(self, drive_id, file_id, filename):
+        self._validate_login()
+        url = 'https://graph.microsoft.com//v1.0/drives/' + drive_id + '/items/' + file_id + '/content?AVOverride=1'
+        with open(filename, 'wb+') as fp:
+            headers = {'Authorization': self._access_token}
+            req = request.Request(url, headers=headers)
+            with request.urlopen(req) as f:
+                fp.write(f.read())
 
     def _ask_permission(self):
         url = (f'{Onedrive.AUTH_URL}?client_id={Onedrive.CLIENT_ID}&scope={Onedrive.SCOPES}'
