@@ -1,8 +1,8 @@
 #!/usr/bin/python3
 
-from onedrive import Onedrive
+from onedrive_api import OnedriveApi
 
-onedrive = Onedrive()
+onedrive = OnedriveApi()
 onedrive.login()
 
 #print('Default drive:', onedrive.get_defualt_drive())
@@ -16,7 +16,5 @@ default_root = onedrive.get_defualt_root()
 file_id = default_root['id']
 print(file_id)
 
-
 with open('results.txt', 'w+') as fp:
-    print('Changes by id: ', onedrive.view_changes_by_id(drive_id, file_id))
-    #print('Changes by path root:', onedrive.view_changes_by_path(), file=fp)
+    print('Changes by path root:', onedrive.view_changes_by_path(), file=fp)

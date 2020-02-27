@@ -7,7 +7,7 @@ from exceptions import LoginException
 from datetime import datetime, timedelta
 from urllib import request
 
-class Onedrive:
+class OnedriveApi:
     CLIENT_ID = "c22bd74f-da4c-460d-af0a-f97aa232a908"
     AUTH_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
     REDIRECT_URL = "http://localhost:8000"
@@ -77,8 +77,18 @@ class Onedrive:
             with request.urlopen(req) as f:
                 fp.write(f.read())
 
-    def simple_upload(self, local_path, parent_drive_id, parent_id, filename, e_tag):
-        pass
+    def simple_upload(self, local_path, parent_drive_id, parent_id, filename, e_tag = None):
+        self._validate_login()
+        url = ('https://graph.microsoft.com/v1.0/drives/' + parent_drive_id + '/items/' + parent_id + ':/' +
+                filename + ':/content')
+        headers = {'Authorization': self._access_token, "Content-Type": "application/octet-stream"}
+        if (e_tag):
+            headers['If-Match'] = e_tag
+        with open(local_path, 'rb') as fp:
+            data = fp.read()
+            req = request.Request(url, headers=headers, data=data, method='PUT')
+            with request.urlopen(req) as _:
+                pass
 
     def simple_upload_replace(self, local_path, drive_id, file_id, e_tag):
         pass
@@ -102,8 +112,8 @@ class Onedrive:
         pass
 
     def _ask_permission(self):
-        url = (f'{Onedrive.AUTH_URL}?client_id={Onedrive.CLIENT_ID}&scope={Onedrive.SCOPES}'
-               f"&response_type=code&redirect_uri={Onedrive.REDIRECT_URL}")
+        url = (f'{OnedriveApi.AUTH_URL}?client_id={OnedriveApi.CLIENT_ID}&scope={OnedriveApi.SCOPES}'
+               f"&response_type=code&redirect_uri={OnedriveApi.REDIRECT_URL}")
         webbrowser.open(url)
         server = HTTPServer(('localhost', 8000), OAuth2Handler)
         server.handle_request()
@@ -112,11 +122,11 @@ class Onedrive:
             raise LoginException("User authorization failed")
     
     def _redeem_token(self):
-        body = f'client_id={Onedrive.CLIENT_ID}&code={self._code}&grant_type=authorization_code'
+        body = f'client_id={OnedriveApi.CLIENT_ID}&code={self._code}&grant_type=authorization_code'
         self._acquire_token(body)
 
     def _renew_token(self):
-        body = f'client_id={Onedrive.CLIENT_ID}&refresh_token={self._refresh_token}&grant_type=refresh_token'
+        body = f'client_id={OnedriveApi.CLIENT_ID}&refresh_token={self._refresh_token}&grant_type=refresh_token'
         self._acquire_token(body)
 
     def _acquire_token(self, body):
