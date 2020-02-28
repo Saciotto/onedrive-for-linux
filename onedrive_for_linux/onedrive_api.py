@@ -90,8 +90,17 @@ class OnedriveApi:
             with request.urlopen(req) as _:
                 pass
 
-    def simple_upload_replace(self, local_path, drive_id, file_id, e_tag):
-        pass
+    def simple_upload_replace(self, local_path, drive_id, file_id, e_tag=None):
+        self._validate_login()
+        url = ('https://graph.microsoft.com/v1.0/drives/' + drive_id + '/items/' + file_id + '/content')
+        headers = {'Authorization': self._access_token, "Content-Type": "application/octet-stream"}
+        if (e_tag):
+            headers['If-Match'] = e_tag
+        with open(local_path, 'rb') as fp:
+            data = fp.read()
+            req = request.Request(url, headers=headers, data=data, method='PUT')
+            with request.urlopen(req) as _:
+                pass
 
     def update_by_id(self, drive_id, file_id, data, e_tag):
         pass
