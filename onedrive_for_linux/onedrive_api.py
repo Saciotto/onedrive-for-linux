@@ -102,8 +102,16 @@ class OnedriveApi:
             with request.urlopen(req) as _:
                 pass
 
-    def update_by_id(self, drive_id, file_id, data, e_tag):
-        pass
+    def update_by_id(self, drive_id, file_id, data, e_tag=None):
+        self._validate_login()
+        url = 'https://graph.microsoft.com/v1.0/drives/' + drive_id + '/items/' + file_id
+        headers = {'Authorization': self._access_token, "Content-Type": "application/json"}
+        if (e_tag):
+            headers['If-Match'] = e_tag
+
+        req = request.Request(url, headers=headers, data=data, method='PATCH')
+        with request.urlopen(req) as _:
+            pass
 
     def delete_by_id(self, drive_id, file_id, e_tag):
         pass
