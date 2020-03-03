@@ -113,8 +113,16 @@ class OnedriveApi:
         with request.urlopen(req) as _:
             pass
 
-    def delete_by_id(self, drive_id, file_id, e_tag):
-        pass
+    def delete_by_id(self, drive_id, file_id, e_tag=None):
+        self._validate_login()
+        url = 'https://graph.microsoft.com/v1.0/drives/' + drive_id + '/items/' + file_id
+        headers = {'Authorization': self._access_token}
+        if (e_tag):
+            headers['If-Match'] = e_tag
+
+        req = request.Request(url, headers=headers, method='DELETE')
+        with request.urlopen(req) as _:
+            pass
 
     def create_by_id(self, parent_drive_id, parent_id, item):
         pass
