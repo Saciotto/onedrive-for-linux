@@ -125,7 +125,12 @@ class OnedriveApi:
             pass
 
     def create_by_id(self, parent_drive_id, parent_id, item):
-        pass
+        self._validate_login()
+        url = 'https://graph.microsoft.com/v1.0/drives/' + parent_drive_id + '/items/' + parent_id + '/children'
+        headers = {'Authorization': self._access_token, "Content-Type": "application/json"}
+        req = request.Request(url, data=item.encode(), headers=headers, method='POST')
+        with request.urlopen(req) as _:
+            pass
 
     def create_upload_session(self, parent_drive_dd, parent_id, filename, e_tag):
         pass
