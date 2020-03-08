@@ -1,8 +1,10 @@
 
-from .onedrive_api import OnedriveApi
+from .onedrive_api import OnedriveApi, onedrive_login
 
-onedrive = OnedriveApi()
-onedrive.login()
+onedrive2 = onedrive_login()
+account = onedrive2.get_account()
+
+onedrive = OnedriveApi(account)
 
 default_drive =  onedrive.get_defualt_drive()
 drive_id = default_drive['id']

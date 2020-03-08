@@ -23,24 +23,31 @@ ITEM_BY_ID_URL = 'https://graph.microsoft.com/v1.0/me/drive/items/'
 ITEM_BY_PATH_URL = 'https://graph.microsoft.com/v1.0/me/drive/root:/'
 DRIVE_BY_ID_URL = 'https://graph.microsoft.com/v1.0/drives/'
 
+def onedrive_login():
+    url = f'{AUTH_URL}?client_id={CLIENT_ID}&scope={SCOPES}&response_type=code&redirect_uri={REDIRECT_URL}'
+    webbrowser.open(url)
+    server = HTTPServer(('localhost', 8000), OAuth2Handler)
+    server.handle_request()
+    code = getattr(server, 'code', None)
+    if not code:
+        raise LoginException("User authorization failed")
+    return OnedriveApi(code)
+
 class OnedriveApi:
 
-    def __init__(self):
-        self._code = None
-        self._access_token = None
-        self._expire_date = None
-        self._refresh_token = None
-        self._logged = False
+    def __init__(self, account):
+        if type(account) == tuple:
+            self._access_token, self._refresh_token, self._expire_date = account
+        else:
+            self._redeem_token(account)
         self._timeout = 5
 
-    def login(self):
-        self._ask_permission()
-        self._redeem_token()
-        self._logged = True
+    def get_account(self):
+        return (self._access_token, self._refresh_token, self._expire_date)
 
     # https://docs.microsoft.com/en-us/onedrive/developer/rest-api/api/drive_get
     def get_defualt_drive(self):
-        self._validate_login()
+        self._validate_token()
         url = DRIVE_URL
         headers = {'Authorization': self._access_token}
         request = Request(url, headers=headers)
@@ -49,7 +56,7 @@ class OnedriveApi:
 
     # https://docs.microsoft.com/en-us/onedrive/developer/rest-api/api/driveitem_get
     def get_defualt_root(self):
-        self._validate_login()
+        self._validate_token()
         url = f'{DRIVE_URL}/root'
         headers = headers = {'Authorization': self._access_token}
         request = Request(url, headers=headers)
@@ -58,7 +65,7 @@ class OnedriveApi:
 
     # https://docs.microsoft.com/en-us/onedrive/developer/rest-api/api/driveitem_delta
     def view_changes_by_id(self, drive_id, file_id, url=None):
-        self._validate_login()
+        self._validate_token()
         if not url:
             url = f'{DRIVE_BY_ID_URL}/{drive_id}/items/{file_id}/delta'
             url += SELECT_CHANGES
@@ -69,7 +76,7 @@ class OnedriveApi:
 
     # https://docs.microsoft.com/en-us/onedrive/developer/rest-api/api/driveitem_delta
     def view_changes_by_path(self, path=None, url=None):
-        self._validate_login()
+        self._validate_token()
         if(not url):
             if not path or path == '.':
                 url = f'{DRIVE_URL}/root/delta'
@@ -83,7 +90,7 @@ class OnedriveApi:
 
     # https://docs.microsoft.com/en-us/onedrive/developer/rest-api/api/driveitem_get_content
     def download_by_id(self, drive_id, file_id, filename):
-        self._validate_login()
+        self._validate_token()
         url = f'{DRIVE_BY_ID_URL}/{drive_id}/items/{file_id}/content?AVOverride=1'
         with open(filename, 'wb+') as fp:
             headers = {'Authorization': self._access_token}
@@ -93,7 +100,7 @@ class OnedriveApi:
 
     # https://docs.microsoft.com/en-us/onedrive/developer/rest-api/api/driveitem_put_content
     def simple_upload(self, local_path, parent_drive_id, parent_id, filename, e_tag = None):
-        self._validate_login()
+        self._validate_token()
         url = f'{DRIVE_BY_ID_URL}/{parent_drive_id}/items/{parent_id}:/{filename}:/content'
         headers = {'Authorization': self._access_token, "Content-Type": "application/octet-stream"}
         if (e_tag):
@@ -106,7 +113,7 @@ class OnedriveApi:
 
     # https://docs.microsoft.com/en-us/onedrive/developer/rest-api/api/driveitem_put_content
     def simple_upload_replace(self, local_path, drive_id, file_id, e_tag=None):
-        self._validate_login()
+        self._validate_token()
         url = f'{DRIVE_BY_ID_URL}/{drive_id}/items/{file_id}/content'
         headers = {'Authorization': self._access_token, "Content-Type": "application/octet-stream"}
         if (e_tag):
@@ -119,7 +126,7 @@ class OnedriveApi:
 
     # https://docs.microsoft.com/en-us/onedrive/developer/rest-api/api/driveitem_update
     def update_by_id(self, drive_id, file_id, data, e_tag=None):
-        self._validate_login()
+        self._validate_token()
         url = f'{DRIVE_BY_ID_URL}/{drive_id}/items/{file_id}'
         headers = {'Authorization': self._access_token, "Content-Type": "application/json"}
         if (e_tag):
@@ -130,7 +137,7 @@ class OnedriveApi:
 
     # https://docs.microsoft.com/en-us/onedrive/developer/rest-api/api/driveitem_delete
     def delete_by_id(self, drive_id, file_id, e_tag=None):
-        self._validate_login()
+        self._validate_token()
         url = f'{DRIVE_BY_ID_URL}/{drive_id}/items/{file_id}'
         headers = {'Authorization': self._access_token}
         if (e_tag):
@@ -141,7 +148,7 @@ class OnedriveApi:
 
     # https://docs.microsoft.com/en-us/onedrive/developer/rest-api/api/driveitem_post_children
     def create_by_id(self, parent_drive_id, parent_id, item):
-        self._validate_login()
+        self._validate_token()
         url = f'{DRIVE_BY_ID_URL}/{parent_drive_id}/items/{parent_id}/children'
         headers = {'Authorization': self._access_token, "Content-Type": "application/json"}
         request = Request(url, data=item.encode(), headers=headers, method='POST')
@@ -156,19 +163,15 @@ class OnedriveApi:
 
     def request_upload_status(self, upload_url):
         pass
-
-    def _ask_permission(self):
-        url = f'{AUTH_URL}?client_id={CLIENT_ID}&scope={SCOPES}&response_type=code&redirect_uri={REDIRECT_URL}'
-        webbrowser.open(url)
-        server = HTTPServer(('localhost', 8000), OAuth2Handler)
-        server.handle_request()
-        self._code = getattr(server, 'code', None)
-        if not self._code:
-            raise LoginException("User authorization failed")
     
-    def _redeem_token(self):
-        body = f'client_id={CLIENT_ID}&code={self._code}&grant_type=authorization_code'
+    def _redeem_token(self, code):
+        body = f'client_id={CLIENT_ID}&code={code}&grant_type=authorization_code'
         self._acquire_token(body)
+
+    def _validate_token(self):
+        now = datetime.now()
+        if (self._expire_date >= now):
+            self._renew_token()
 
     def _renew_token(self):
         body = f'client_id={CLIENT_ID}&refresh_token={self._refresh_token}&grant_type=refresh_token'
@@ -179,23 +182,11 @@ class OnedriveApi:
         request = Request(TOKEN_URL, data=body.encode(), method='POST')
         with urlopen(request) as response:
             data = json.load(response)
-            self._access_token = data.get('access_token', None)
-            self._refresh_token = data.get('refresh_token', None)
-            expire = data.get('expires_in', 0)
+            try:
+                self._access_token = data['access_token']
+                self._refresh_token = data['refresh_token']
+                expire = data['expires_in']
+            except Exception as e:
+                print('Login Error:', e)
+                raise LoginException('Redeem access token failed')
             self._expire_date = now + timedelta(seconds=int(expire))
-
-        if (not self._access_token or not expire or not self._refresh_token):
-            raise LoginException("Redeem access token failed")
-
-    def _ensure_logged(self):
-        if (not self._logged):
-            raise LoginException("User must be logged in")
-
-    def _is_token_expired(self):
-        now = datetime.now()
-        return (self._expire_date >= now)
-
-    def _validate_login(self):
-        self._ensure_logged()
-        if (self._is_token_expired()):
-            self._renew_token()
