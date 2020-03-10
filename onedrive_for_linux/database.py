@@ -15,38 +15,60 @@ class Database:
     def __exit__(self, type, value, traceback):
         self.conn.close()
 
-    def save_account(self, name, account):
-        querry = """
-            INSERT INTO accounts (name, access_token, refresh_token, expire_date) VALUES (?,?,?,?);
-        """
-        cur = self.conn.cursor()
-        access_token, refresh_token, expire_date = account
-        cur.execute(querry, (name, access_token, refresh_token, expire_date))
-        self.conn.commit()
+    def save_account(self, account):
+        account_id = account[0]
+        if self._contains(account_id):
+            self._update_account(account)
+        else:
+            self._insert_account(account)
 
-    def load_account(self, name):
+    def load_account(self, id):
         querry = """
-            SELECT * FROM accounts WHERE name=?;
+            SELECT * FROM accounts WHERE id=?;
         """
         cur = self.conn.cursor()
-        cur.execute(querry, (name,))
+        cur.execute(querry, (id,))
         return cur.fetchone()
+
+    def load_all_accounts(self):
+        querry = """
+            SELECT * FROM accounts;
+        """
+        cur = self.conn.cursor()
+        cur.execute(querry)
+        return cur.fetchall()
 
     def _create_account_table(self):
         querry = """ 
             CREATE TABLE IF NOT EXISTS accounts (
-                id              integer PRIMARY KEY NOT NULL,
-                name            text                NOT NULL,
-                access_token    text                NOT NULL,
-                refresh_token   text                NOT NULL,
-                expire_date     text                NOT NULL
+                id              TEXT        PRIMARY KEY     NOT NULL,
+                name            TEXT                        NOT NULL,
+                access_token    TEXT                        NOT NULL,
+                refresh_token   TEXT                        NOT NULL,
+                expire_date     DATETIME                    NOT NULL
             );
         """
         cur = self.conn.cursor()
         cur.execute(querry)
 
-if __name__ == "__main__":
-    with Database() as db:
-        account = ('at', 'rf', 'date')
-        db.save_account('Teste', ('a', 'b', 'c'))
-        db.load_account('Teste')
+    def _contains(self, id):
+        account = self.load_account(id)
+        if (account):
+            return True
+        return False
+
+    def _insert_account(self, account):
+        querry = """
+            INSERT INTO accounts (id, name, access_token, refresh_token, expire_date) VALUES (?,?,?,?,?);
+        """
+        cur = self.conn.cursor()
+        cur.execute(querry, account)
+        self.conn.commit()
+
+    def _update_account(self, account):
+        querry = """
+            UPDATE accounts SET name=?, access_token=?, refresh_token=?, expire_date=? WHERE id=?;
+        """
+        cur = self.conn.cursor()
+        cur.execute(querry, (account[1], account[2], account[3], account[4], account[0]))
+        self.conn.commit()
