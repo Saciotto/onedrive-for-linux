@@ -36,14 +36,19 @@ def onedrive_login():
 class OnedriveApi:
 
     def __init__(self, account):
+        self._timeout = 5
         if type(account) == tuple:
-            self._access_token, self._refresh_token, self._expire_date = account
+            self._drive_id, self._user, self._access_token, self._refresh_token, expire_date = account
+            self._expire_date = datetime.fromisoformat(expire_date)
         else:
             self._redeem_token(account)
-        self._timeout = 5
+            self._get_user()
+
+    def __str__(self):
+        return f'ID: "{self._drive_id}", OneDrive user: "{self._user}"'
 
     def get_account(self):
-        return (self._access_token, self._refresh_token, self._expire_date)
+        return (self._drive_id, self._user, self._access_token, self._refresh_token, self._expire_date.isoformat(' '))
 
     # https://docs.microsoft.com/en-us/onedrive/developer/rest-api/api/drive_get
     def get_defualt_drive(self):
@@ -163,6 +168,11 @@ class OnedriveApi:
 
     def request_upload_status(self, upload_url):
         pass
+
+    def _get_user(self):
+        response = self.get_defualt_drive()
+        self._drive_id = response['id']
+        self._user = response['owner']['user']['displayName']
     
     def _redeem_token(self, code):
         body = f'client_id={CLIENT_ID}&code={code}&grant_type=authorization_code'
