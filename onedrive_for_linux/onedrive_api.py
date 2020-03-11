@@ -113,7 +113,7 @@ class OnedriveApi:
         with open(local_path, 'rb') as fp:
             data = fp.read()
             request = Request(url, headers=headers, data=data, method='PUT')
-            with urlopen(request) as response:
+            with urlopen(request, timeout=self._timeout) as response:
                 return json.load(response)
 
     # https://docs.microsoft.com/en-us/onedrive/developer/rest-api/api/driveitem_put_content
@@ -126,7 +126,7 @@ class OnedriveApi:
         with open(local_path, 'rb') as fp:
             data = fp.read()
             request = Request(url, headers=headers, data=data, method='PUT')
-            with urlopen(request) as response:
+            with urlopen(request, timeout=self._timeout) as response:
                 return json.load(response)
 
     # https://docs.microsoft.com/en-us/onedrive/developer/rest-api/api/driveitem_update
@@ -137,7 +137,7 @@ class OnedriveApi:
         if (e_tag):
             headers['If-Match'] = e_tag
         request = Request(url, headers=headers, data=data, method='PATCH')
-        with urlopen(request) as response:
+        with urlopen(request, timeout=self._timeout) as response:
             return json.load(response)
 
     # https://docs.microsoft.com/en-us/onedrive/developer/rest-api/api/driveitem_delete
@@ -148,7 +148,7 @@ class OnedriveApi:
         if (e_tag):
             headers['If-Match'] = e_tag
         request = Request(url, headers=headers, method='DELETE')
-        with urlopen(request) as _:
+        with urlopen(request, timeout=self._timeout) as _:
             pass
 
     # https://docs.microsoft.com/en-us/onedrive/developer/rest-api/api/driveitem_post_children
@@ -157,7 +157,7 @@ class OnedriveApi:
         url = f'{DRIVE_BY_ID_URL}/{parent_drive_id}/items/{parent_id}/children'
         headers = {'Authorization': self._access_token, "Content-Type": "application/json"}
         request = Request(url, data=item.encode(), headers=headers, method='POST')
-        with urlopen(request) as response:
+        with urlopen(request, timeout=self._timeout) as response:
             return json.load(response)
 
     def create_upload_session(self, parent_drive_dd, parent_id, filename, e_tag):
