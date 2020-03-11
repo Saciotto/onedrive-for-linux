@@ -160,14 +160,34 @@ class OnedriveApi:
         with urlopen(request, timeout=self._timeout) as response:
             return json.load(response)
 
-    def create_upload_session(self, parent_drive_dd, parent_id, filename, e_tag):
-        pass
+    # https://docs.microsoft.com/en-us/onedrive/developer/rest-api/api/driveitem_createuploadsession
+    def create_upload_session(self, parent_drive_id, parent_id, filename, e_tag=None):
+        self._validate_token()
+        url = f'{DRIVE_BY_ID_URL}/{parent_drive_id}/items/{parent_id}:/{filename}:/createUploadSession'
+        headers = {'Authorization': self._access_token, "Content-Type": "application/json"}
+        if (e_tag):
+            headers['If-Match'] = e_tag
+        request = Request(url, headers=headers, method='POST')
+        with urlopen(request, timeout=self._timeout) as response:
+            return json.load(response)
 
-    def upload_fragment(self, upload_url, filepath, offset, offset_size, filesize):
-        pass
+    # https://docs.microsoft.com/en-us/onedrive/developer/rest-api/api/driveitem_createuploadsession?view=odsp-graph-online
+    def upload_fragment(self, upload_url, local_path, offset, content_size, filesize):
+        self._validate_token()
+        content_range = f'bytes {offset}-{offset + content_size - 1}/{filesize}'
+        headers = {'Content-range': content_range}
+        with open(local_path, 'rb') as fp:
+            fp.seek(offset)
+            data = fp.read(content_size)
+            request = Request(upload_url, headers=headers, data=data, method='PUT')
+            with urlopen(request, timeout=self._timeout) as response:
+                return json.load(response)
 
+    # https://docs.microsoft.com/en-us/onedrive/developer/rest-api/api/driveitem_createuploadsession?view=odsp-graph-online
     def request_upload_status(self, upload_url):
-        pass
+        self._validate_token()
+        with urlopen(upload_url, timeout=self._timeout) as response:
+            return json.load(response)
 
     def _get_user(self):
         response = self.get_defualt_drive()
