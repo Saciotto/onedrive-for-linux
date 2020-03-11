@@ -179,8 +179,7 @@ class OnedriveApi:
         self._acquire_token(body)
 
     def _validate_token(self):
-        now = datetime.now()
-        if (self._expire_date >= now):
+        if (self._expire_date <= datetime.now()):
             self._renew_token()
 
     def _renew_token(self):
