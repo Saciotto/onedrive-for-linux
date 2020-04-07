@@ -3,7 +3,6 @@ from datetime import datetime, timedelta
 from urllib.request import Request, urlopen
 
 from . import routes
-from .exceptions import LoginException
 
 class Onedrive:
 
@@ -182,17 +181,13 @@ class Onedrive:
         return Onedrive._acquire_token(body)
 
     @staticmethod
-    def _acquire_token(body, timeout=Onedrive.DEFAULT_TIMEOUT):
+    def _acquire_token(body, timeout=5):
         now = datetime.now()
         request = Request(routes.TOKEN_URL, data=body.encode(), method='POST')
         with urlopen(request, timeout=timeout) as response:
             data = json.load(response)
-            try:
-                access_token = data['access_token']
-                refresh_token = data['refresh_token']
-                expire = data['expires_in']
-            except Exception as e:
-                print('Login Error:', e)
-                raise LoginException('Redeem access token failed')
+            access_token = data['access_token']
+            refresh_token = data['refresh_token']
+            expire = data['expires_in']
             expire_date = now + timedelta(seconds=int(expire))
         return access_token, refresh_token, expire_date

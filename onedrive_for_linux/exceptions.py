@@ -1,3 +1,0 @@
-
-def LoginException(Exception):
-    pass

@@ -3,7 +3,6 @@ from http.server import HTTPServer
 
 from . import routes
 from .oauth2_handler import OAuth2Handler
-from .exceptions import LoginException
 from .onedrive import Onedrive
 
 def onedrive_login():
@@ -11,7 +10,5 @@ def onedrive_login():
     webbrowser.open(url)
     server = HTTPServer(('localhost', 8000), OAuth2Handler)
     server.handle_request()
-    code = getattr(server, 'code', None)
-    if not code:
-        raise LoginException("User authorization failed")
+    code = getattr(server, 'code')
     return Onedrive.login(code)

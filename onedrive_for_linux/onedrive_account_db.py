@@ -2,12 +2,12 @@ import os
 import sqlite3
 from pathlib import Path
 
-class Database:
+class OnedriveAccountDB:
 
     def __enter__(self):
         db_path = Path(os.environ.get('XDG_DATA_HOME', Path.home() / '.local' / 'share' / 'onedrive_for_linux'))
         db_path.mkdir(mode=0o755, parents=True, exist_ok=True) 
-        db_file = str(db_path / 'accounts.db')
+        db_file = str(db_path / 'onedrive.db')
         self.conn = sqlite3.connect(db_file)
         self._create_account_table()
         return self
@@ -15,14 +15,14 @@ class Database:
     def __exit__(self, type, value, traceback):
         self.conn.close()
 
-    def save_account(self, account):
+    def save(self, account):
         account_id = account[0]
         if self._contains(account_id):
             self._update_account(account)
         else:
             self._insert_account(account)
 
-    def load_account(self, id):
+    def load(self, id):
         querry = """
             SELECT * FROM accounts WHERE id=?;
         """
@@ -30,7 +30,7 @@ class Database:
         cur.execute(querry, (id,))
         return cur.fetchone()
 
-    def load_all_accounts(self):
+    def load_all(self):
         querry = """
             SELECT * FROM accounts;
         """
@@ -52,7 +52,7 @@ class Database:
         cur.execute(querry)
 
     def _contains(self, id):
-        account = self.load_account(id)
+        account = self.load(id)
         if (account):
             return True
         return False

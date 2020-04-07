@@ -2,7 +2,7 @@ from datetime import datetime
 
 from .onedrive import Onedrive
 
-class Account:
+class OnedriveAccount:
 
     def __init__(self, onedrive, account_id=None):
         self.onedrive = onedrive
@@ -20,7 +20,7 @@ class Account:
         expire_date = datetime.fromisoformat(expire_date)
         onedrive = Onedrive(access_token, refresh_token, expire_date)
         account_id = (drive_id, name)
-        return Account(onedrive, account_id)
+        return OnedriveAccount(onedrive, account_id)
 
     def to_database(self):
         access_token = self.onedrive.access_token
