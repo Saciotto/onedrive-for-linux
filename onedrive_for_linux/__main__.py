@@ -1,3 +1,4 @@
+import logging
 from argparse import ArgumentParser
 
 from . import version
@@ -52,6 +53,10 @@ parser.add_argument('-v', '--verbose', help='Print more details, useful for debu
 parser.add_argument('--version', action='version', version=f'OneDive {version.APP_VERSION}')
 
 args = parser.parse_args()
+
+if args.verbose:
+    logging.basicConfig(level=logging.DEBUG)
+
 args.func(args)
 
 # from .cli_login import onedrive_login
