@@ -2,10 +2,14 @@ import logging
 from argparse import ArgumentParser
 
 from . import version
+from .cli_login import onedrive_login
+from .onedrive_account import OnedriveAccount
 
 
 def login(args):
-    print('Function Login')
+    onedrive = onedrive_login()
+    account = OnedriveAccount(args.name, onedrive)
+    account.save()
 
 
 def download(args):
@@ -32,6 +36,7 @@ parser = ArgumentParser(prog='onedrive')
 subparsers = parser.add_subparsers(title='commands', metavar='command', help='description')
 
 subparser = subparsers.add_parser('login', help='login a new user')
+subparser.add_argument('name', help='unique name for this account')
 subparser.set_defaults(func=login)
 
 subparser = subparsers.add_parser('logout', help='logout the current user')
@@ -58,26 +63,3 @@ if args.verbose:
     logging.basicConfig(level=logging.DEBUG)
 
 args.func(args)
-
-# from .cli_login import onedrive_login
-# from .onedrive import Onedrive
-# from .onedrive_account import OnedriveAccount
-# from .onedrive_account_db import OnedriveAccountDB
-#
-# def perform_sync():
-#     print('Perform sync')
-#
-# account_db = None
-#
-# with OnedriveAccountDB() as db:
-#     accounts = db.load_all()
-#     if len(accounts) > 0:
-#         account_db = accounts[0]
-#
-# if not account_db:
-#     onedrive = onedrive_login()
-#     account = OnedriveAccount(onedrive)
-# else:
-#     account = OnedriveAccount.from_database(account_db)
-#
-# perform_sync()

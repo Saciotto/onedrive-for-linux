@@ -2,11 +2,12 @@ import os
 import sqlite3
 from pathlib import Path
 
+
 class OnedriveAccountDB:
 
     def __enter__(self):
         db_path = Path(os.environ.get('XDG_DATA_HOME', Path.home() / '.local' / 'share' / 'onedrive_for_linux'))
-        db_path.mkdir(mode=0o755, parents=True, exist_ok=True) 
+        db_path.mkdir(mode=0o755, parents=True, exist_ok=True)
         db_file = str(db_path / 'onedrive.db')
         self.conn = sqlite3.connect(db_file)
         self._create_account_table()
@@ -16,18 +17,18 @@ class OnedriveAccountDB:
         self.conn.close()
 
     def save(self, account):
-        account_id = account[0]
-        if self._contains(account_id):
+        name = account[0]
+        if self._contains(name):
             self._update_account(account)
         else:
             self._insert_account(account)
 
-    def load(self, id):
+    def load(self, name):
         querry = """
-            SELECT * FROM accounts WHERE id=?;
+            SELECT * FROM accounts WHERE name=?;
         """
         cur = self.conn.cursor()
-        cur.execute(querry, (id,))
+        cur.execute(querry, (name,))
         return cur.fetchone()
 
     def load_all(self):
@@ -41,8 +42,7 @@ class OnedriveAccountDB:
     def _create_account_table(self):
         querry = """ 
             CREATE TABLE IF NOT EXISTS accounts (
-                id              TEXT        PRIMARY KEY     NOT NULL,
-                name            TEXT                        NOT NULL,
+                name            TEXT        PRIMARY KEY     NOT NULL,
                 access_token    TEXT                        NOT NULL,
                 refresh_token   TEXT                        NOT NULL,
                 expire_date     DATETIME                    NOT NULL
@@ -59,7 +59,7 @@ class OnedriveAccountDB:
 
     def _insert_account(self, account):
         querry = """
-            INSERT INTO accounts (id, name, access_token, refresh_token, expire_date) VALUES (?,?,?,?,?);
+            INSERT INTO accounts (name, access_token, refresh_token, expire_date) VALUES (?,?,?,?);
         """
         cur = self.conn.cursor()
         cur.execute(querry, account)
@@ -67,8 +67,8 @@ class OnedriveAccountDB:
 
     def _update_account(self, account):
         querry = """
-            UPDATE accounts SET name=?, access_token=?, refresh_token=?, expire_date=? WHERE id=?;
+            UPDATE accounts SET access_token=?, refresh_token=?, expire_date=? WHERE name=?;
         """
         cur = self.conn.cursor()
-        cur.execute(querry, (account[1], account[2], account[3], account[4], account[0]))
+        cur.execute(querry, (account[1], account[2], account[3], account[0]))
         self.conn.commit()
