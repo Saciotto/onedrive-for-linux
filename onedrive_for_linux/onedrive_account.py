@@ -14,24 +14,18 @@ class OnedriveAccount:
         return f'OndriveAccount({self.account_id})"'
 
     def save(self):
+        access_token = self.onedrive.access_token
+        refresh_token = self.onedrive.refresh_token
+        expire_date = self.onedrive.expire_date.isoformat(' ')
+        data = (self.account_id, access_token, refresh_token, expire_date)
         with OnedriveAccountDB() as db:
-            db.save(self.to_database())
+            db.save(data)
 
     @staticmethod
     def load(name):
         with OnedriveAccountDB() as db:
             account_db = db.load(name)
-        return OnedriveAccount.from_database(account_db)
-
-    @staticmethod
-    def from_database(data):
-        account_id, access_token, refresh_token, expire_date = data
+        account_id, access_token, refresh_token, expire_date = account_db
         expire_date = datetime.fromisoformat(expire_date)
         onedrive = Onedrive(access_token, refresh_token, expire_date)
         return OnedriveAccount(account_id, onedrive)
-
-    def to_database(self):
-        access_token = self.onedrive.access_token
-        refresh_token = self.onedrive.refresh_token
-        expire_date = self.onedrive.expire_date.isoformat(' ')
-        return (self.account_id, access_token, refresh_token, expire_date)
