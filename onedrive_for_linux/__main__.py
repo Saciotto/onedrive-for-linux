@@ -1,7 +1,6 @@
 from argparse import ArgumentParser
 
-APP_NAME = 'OneDrive'
-APP_VERSION = '1.0.0'
+from . import version
 
 
 def login(args):
@@ -28,29 +27,29 @@ def resync(args):
     print('Function Resync')
 
 
-parser = ArgumentParser(prog=APP_NAME)
+parser = ArgumentParser(prog='onedrive')
 subparsers = parser.add_subparsers(title='commands', metavar='command', help='description')
 
 subparser = subparsers.add_parser('login', help='login a new user')
 subparser.set_defaults(func=login)
 
-subparser = subparsers.add_parser('download', help='only download remote changes')
-subparser.set_defaults(func=download)
-
 subparser = subparsers.add_parser('logout', help='logout the current user')
 subparser.set_defaults(func=logout)
+
+subparser = subparsers.add_parser('download', help='only download remote changes')
+subparser.set_defaults(func=download)
 
 subparser = subparsers.add_parser('monitor', help='keep monitoring for local and remote changes')
 subparser.set_defaults(func=monitor)
 
-subparser = subparsers.add_parser('token', help='print the access token, useful for debugging')
-subparser.set_defaults(func=print_token)
-
 subparser = subparsers.add_parser('resync', help='forget the last saved state, perform a full sync')
 subparser.set_defaults(func=resync)
 
-parser.add_argument('--verbose', help='Print more details, useful for debugging', action='store_true')
-parser.add_argument('--version', action='version', version=f'{APP_NAME} {APP_VERSION}')
+subparser = subparsers.add_parser('token', help='print the access token, useful for debugging')
+subparser.set_defaults(func=print_token)
+
+parser.add_argument('-v', '--verbose', help='Print more details, useful for debugging', action='store_true')
+parser.add_argument('--version', action='version', version=f'OneDive {version.APP_VERSION}')
 
 args = parser.parse_args()
 args.func(args)
