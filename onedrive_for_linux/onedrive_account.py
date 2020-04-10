@@ -4,6 +4,10 @@ from .onedrive import Onedrive
 from .onedrive_account_db import OnedriveAccountDB
 
 
+class AccountNotFound(Exception):
+    pass
+
+
 class OnedriveAccount:
 
     def __init__(self, account_id, onedrive):
@@ -25,6 +29,8 @@ class OnedriveAccount:
     def load(name):
         with OnedriveAccountDB() as db:
             account_db = db.load(name)
+        if not account_db:
+            raise AccountNotFound(f'{name} account was not found.')
         account_id, access_token, refresh_token, expire_date = account_db
         expire_date = datetime.fromisoformat(expire_date)
         onedrive = Onedrive(access_token, refresh_token, expire_date)
