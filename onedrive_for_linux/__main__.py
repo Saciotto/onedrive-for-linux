@@ -25,7 +25,8 @@ def monitor(args):
 
 
 def print_token(args):
-    print('Function Print Token')
+    account = OnedriveAccount.load(args.name)
+    print(account.onedrive.access_token)
 
 
 def resync(args):
@@ -52,6 +53,7 @@ subparser = subparsers.add_parser('resync', help='forget the last saved state, p
 subparser.set_defaults(func=resync)
 
 subparser = subparsers.add_parser('token', help='print the access token, useful for debugging')
+subparser.add_argument('name', help='unique name for this account')
 subparser.set_defaults(func=print_token)
 
 parser.add_argument('-v', '--verbose', help='Print more details, useful for debugging', action='store_true')
