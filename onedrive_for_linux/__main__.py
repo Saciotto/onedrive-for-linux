@@ -6,9 +6,9 @@ from .cli_login import onedrive_login
 from .onedrive_account import OnedriveAccount
 from .sync import SyncEngine
 
+
 def login(args):
-    onedrive = onedrive_login()
-    account = OnedriveAccount(args.name, onedrive)
+    account = onedrive_login(args.name)
     account.save()
 
 
@@ -32,7 +32,7 @@ def monitor(args):
 
 def print_token(args):
     account = OnedriveAccount.load(args.name)
-    print(account.onedrive.access_token)
+    print(account.access_token)
 
 
 def resync(args):

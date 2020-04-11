@@ -2,7 +2,7 @@ from .item import Item
 
 class SyncEngine:
     def __init__(self, account):
-        self.onedrive = account.onedrive
+        self.onedrive = account
         self.folder = '~/onedrive'
 
     def apply_differences(self):
