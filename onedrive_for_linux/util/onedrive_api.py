@@ -2,13 +2,30 @@ import json
 from datetime import datetime, timedelta, timezone
 from urllib.request import Request, urlopen
 
-from onedrive_for_linux.util import routes
+# Microsoft Authorization
+AUTH_URL = 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize'
+TOKEN_URL = 'https://login.microsoftonline.com/common/oauth2/v2.0/token'
 
+# Microsoft Graph API
+DRIVE_URL = 'https://graph.microsoft.com/v1.0/me/drive'
+ITEM_BY_ID_URL = 'https://graph.microsoft.com/v1.0/me/drive/items/'
+ITEM_BY_PATH_URL = 'https://graph.microsoft.com/v1.0/me/drive/root:/'
+DRIVE_BY_ID_URL = 'https://graph.microsoft.com/v1.0/drives/'
+
+# Applicaton
+REDIRECT_URL = 'http://localhost:8000'
+
+# Request information
+CLIENT_ID = 'c22bd74f-da4c-460d-af0a-f97aa232a908'
+SCOPES = 'Files.ReadWrite%20Files.ReadWrite.all%20Sites.ReadWrite.All%20offline_access'
+SELECT_CHANGES = '?select=id,name,eTag,cTag,deleted,file,folder,root,fileSystemInfo,remoteItem,parentReference'
+
+# Request timeout
 ONEDRIVE_TIMEOUT = 5
 
 
 def get_defualt_drive(access_token):
-    url = routes.DRIVE_URL
+    url = DRIVE_URL
     headers = {'Authorization': access_token}
     request = Request(url, headers=headers)
     with urlopen(request, timeout=ONEDRIVE_TIMEOUT) as response:
@@ -16,7 +33,7 @@ def get_defualt_drive(access_token):
 
 
 def get_defualt_root(access_token):
-    url = f'{routes.DRIVE_URL}/root'
+    url = f'{DRIVE_URL}/root'
     headers = headers = {'Authorization': access_token}
     request = Request(url, headers=headers)
     with urlopen(request, timeout=ONEDRIVE_TIMEOUT) as response:
@@ -25,8 +42,8 @@ def get_defualt_root(access_token):
 
 def view_changes_by_id(access_token, drive_id, file_id, url=None):
     if not url:
-        url = f'{routes.DRIVE_BY_ID_URL}/{drive_id}/items/{file_id}/delta'
-        url += routes.SELECT_CHANGES
+        url = f'{DRIVE_BY_ID_URL}/{drive_id}/items/{file_id}/delta'
+        url += SELECT_CHANGES
     headers = {'Authorization': access_token}
     request = Request(url, headers=headers)
     with urlopen(request, timeout=ONEDRIVE_TIMEOUT) as response:
@@ -36,10 +53,10 @@ def view_changes_by_id(access_token, drive_id, file_id, url=None):
 def view_changes_by_path(access_token, path=None, url=None):
     if(not url):
         if not path or path == '.':
-            url = f'{routes.DRIVE_URL}/root/delta'
+            url = f'{DRIVE_URL}/root/delta'
         else:
-            url = f'{routes.ITEM_BY_PATH_URL}/{path}:delta'
-        url += routes.SELECT_CHANGES
+            url = f'{ITEM_BY_PATH_URL}/{path}:delta'
+        url += SELECT_CHANGES
     headers = {'Authorization': access_token}
     request = Request(url, headers=headers)
     with urlopen(request, timeout=ONEDRIVE_TIMEOUT) as response:
@@ -47,7 +64,7 @@ def view_changes_by_path(access_token, path=None, url=None):
 
 
 def download_by_id(access_token, drive_id, file_id, filename):
-    url = f'{routes.DRIVE_BY_ID_URL}/{drive_id}/items/{file_id}/content?AVOverride=1'
+    url = f'{DRIVE_BY_ID_URL}/{drive_id}/items/{file_id}/content?AVOverride=1'
     with open(filename, 'wb+') as fp:
         headers = {'Authorization': access_token}
         request = Request(url, headers=headers)
@@ -56,7 +73,7 @@ def download_by_id(access_token, drive_id, file_id, filename):
 
 
 def simple_upload(access_token, local_path, parent_drive_id, parent_id, filename, e_tag=None):
-    url = f'{routes.DRIVE_BY_ID_URL}/{parent_drive_id}/items/{parent_id}:/{filename}:/content'
+    url = f'{DRIVE_BY_ID_URL}/{parent_drive_id}/items/{parent_id}:/{filename}:/content'
     headers = {'Authorization': access_token, "Content-Type": "application/octet-stream"}
     if (e_tag):
         headers['If-Match'] = e_tag
@@ -68,7 +85,7 @@ def simple_upload(access_token, local_path, parent_drive_id, parent_id, filename
 
 
 def simple_upload_replace(access_token, local_path, drive_id, file_id, e_tag=None):
-    url = f'{routes.DRIVE_BY_ID_URL}/{drive_id}/items/{file_id}/content'
+    url = f'{DRIVE_BY_ID_URL}/{drive_id}/items/{file_id}/content'
     headers = {'Authorization': access_token, "Content-Type": "application/octet-stream"}
     if (e_tag):
         headers['If-Match'] = e_tag
@@ -80,7 +97,7 @@ def simple_upload_replace(access_token, local_path, drive_id, file_id, e_tag=Non
 
 
 def update_by_id(access_token, drive_id, file_id, data, e_tag=None):
-    url = f'{routes.DRIVE_BY_ID_URL}/{drive_id}/items/{file_id}'
+    url = f'{DRIVE_BY_ID_URL}/{drive_id}/items/{file_id}'
     headers = {'Authorization': access_token, "Content-Type": "application/json"}
     if (e_tag):
         headers['If-Match'] = e_tag
@@ -90,7 +107,7 @@ def update_by_id(access_token, drive_id, file_id, data, e_tag=None):
 
 
 def delete_by_id(access_token, drive_id, file_id, e_tag=None):
-    url = f'{routes.DRIVE_BY_ID_URL}/{drive_id}/items/{file_id}'
+    url = f'{DRIVE_BY_ID_URL}/{drive_id}/items/{file_id}'
     headers = {'Authorization': access_token}
     if (e_tag):
         headers['If-Match'] = e_tag
@@ -100,7 +117,7 @@ def delete_by_id(access_token, drive_id, file_id, e_tag=None):
 
 
 def create_by_id(access_token, parent_drive_id, parent_id, item):
-    url = f'{routes.DRIVE_BY_ID_URL}/{parent_drive_id}/items/{parent_id}/children'
+    url = f'{DRIVE_BY_ID_URL}/{parent_drive_id}/items/{parent_id}/children'
     headers = {'Authorization': access_token, "Content-Type": "application/json"}
     request = Request(url, data=item.encode(), headers=headers, method='POST')
     with urlopen(request, timeout=ONEDRIVE_TIMEOUT) as response:
@@ -108,7 +125,7 @@ def create_by_id(access_token, parent_drive_id, parent_id, item):
 
 
 def create_upload_session(access_token, parent_drive_id, parent_id, filename, e_tag=None):
-    url = f'{routes.DRIVE_BY_ID_URL}/{parent_drive_id}/items/{parent_id}:/{filename}:/createUploadSession'
+    url = f'{DRIVE_BY_ID_URL}/{parent_drive_id}/items/{parent_id}:/{filename}:/createUploadSession'
     headers = {'Authorization': access_token, "Content-Type": "application/json"}
     if (e_tag):
         headers['If-Match'] = e_tag
@@ -135,7 +152,7 @@ def request_upload_status(upload_url):
 
 def _acquire_token(body):
     now = datetime.now(tz=timezone.utc)
-    request = Request(routes.TOKEN_URL, data=body.encode(), method='POST')
+    request = Request(TOKEN_URL, data=body.encode(), method='POST')
     with urlopen(request, timeout=ONEDRIVE_TIMEOUT) as response:
         data = json.load(response)
         access_token = data['access_token']
@@ -146,10 +163,10 @@ def _acquire_token(body):
 
 
 def redeem_token(code):
-    body = f'client_id={routes.CLIENT_ID}&code={code}&grant_type=authorization_code'
+    body = f'client_id={CLIENT_ID}&code={code}&grant_type=authorization_code'
     return _acquire_token(body)
 
 
 def renew_token(refresh_token):
-    body = f'client_id={routes.CLIENT_ID}&refresh_token={refresh_token}&grant_type=refresh_token'
+    body = f'client_id={CLIENT_ID}&refresh_token={refresh_token}&grant_type=refresh_token'
     return _acquire_token(body)
