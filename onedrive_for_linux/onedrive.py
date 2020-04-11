@@ -1,5 +1,5 @@
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from urllib.request import Request, urlopen
 
 from . import routes
@@ -171,7 +171,7 @@ class Onedrive:
         return self._expire_date
 
     def _renew_token(self):
-        if self._expire_date <= datetime.now():
+        if self._expire_date <= datetime.now(tz=timezone.utc):
             body = f'client_id={routes.CLIENT_ID}&refresh_token={self._refresh_token}&grant_type=refresh_token'
             self._access_token, self._refresh_token, self._expire_date = Onedrive._acquire_token(body, self.timeout)
 
@@ -182,7 +182,7 @@ class Onedrive:
 
     @staticmethod
     def _acquire_token(body, timeout=5):
-        now = datetime.now()
+        now = datetime.now(tz=timezone.utc)
         request = Request(routes.TOKEN_URL, data=body.encode(), method='POST')
         with urlopen(request, timeout=timeout) as response:
             data = json.load(response)
