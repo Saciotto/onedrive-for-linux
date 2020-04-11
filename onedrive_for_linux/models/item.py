@@ -33,8 +33,9 @@ class Item:
 
         if not 'root' in drive_item and 'parentReference' in drive_item:
             self.drive_id = drive_item['parentReference']['driveId']
+            self.parent_id = drive_item['parentReference']['id']
         else:
-            self.drive_id = None
+            self.drive_id = self.parent_id = None
 
         if 'file' in drive_item and 'hashes' in drive_item['file']:
             hashes = drive_item['file']['hashes']
