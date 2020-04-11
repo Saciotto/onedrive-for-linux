@@ -1,20 +1,17 @@
-import os
-import sqlite3
-from pathlib import Path
+from .sqlite_table import SqliteTable
 
 
-class OnedriveAccountDB:
+class OnedriveAccountDB(SqliteTable):
 
-    def __enter__(self):
-        db_path = Path(os.environ.get('XDG_DATA_HOME', Path.home() / '.local' / 'share' / 'onedrive_for_linux'))
-        db_path.mkdir(mode=0o755, parents=True, exist_ok=True)
-        db_file = str(db_path / 'onedrive.db')
-        self.conn = sqlite3.connect(db_file)
-        self._create_account_table()
-        return self
-
-    def __exit__(self, type, value, traceback):
-        self.conn.close()
+    def create_table_querry(self):
+        return """ 
+            CREATE TABLE IF NOT EXISTS accounts (
+                name            TEXT        PRIMARY KEY     NOT NULL,
+                access_token    TEXT                        NOT NULL,
+                refresh_token   TEXT                        NOT NULL,
+                expire_date     DATETIME                    NOT NULL
+            );
+        """
 
     def save(self, account):
         name = account[0]
@@ -38,18 +35,6 @@ class OnedriveAccountDB:
         cur = self.conn.cursor()
         cur.execute(querry)
         return cur.fetchall()
-
-    def _create_account_table(self):
-        querry = """ 
-            CREATE TABLE IF NOT EXISTS accounts (
-                name            TEXT        PRIMARY KEY     NOT NULL,
-                access_token    TEXT                        NOT NULL,
-                refresh_token   TEXT                        NOT NULL,
-                expire_date     DATETIME                    NOT NULL
-            );
-        """
-        cur = self.conn.cursor()
-        cur.execute(querry)
 
     def _contains(self, id):
         account = self.load(id)
