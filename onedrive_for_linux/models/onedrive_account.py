@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 
-from . import onedrive_api
-from .onedrive_account_db import OnedriveAccountDB
+from onedrive_for_linux.util import onedrive_api
+from onedrive_for_linux.db.onedrive_account_db import OnedriveAccountDB
 
 
 class AccountNotFound(Exception):

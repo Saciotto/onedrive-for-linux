@@ -2,7 +2,7 @@ import json
 from datetime import datetime, timedelta, timezone
 from urllib.request import Request, urlopen
 
-from . import routes
+from onedrive_for_linux.util import routes
 
 ONEDRIVE_TIMEOUT = 5
 

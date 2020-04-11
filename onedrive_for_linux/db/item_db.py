@@ -1,4 +1,5 @@
-from .sqlite_table import SqliteTable
+from onedrive_for_linux.db.sqlite_table import SqliteTable
+
 
 class ItemDB(SqliteTable):
 

@@ -1,9 +1,9 @@
 import webbrowser
 from http.server import HTTPServer
 
-from . import routes
-from .oauth2_handler import OAuth2Handler
-from .onedrive_account import OnedriveAccount
+from onedrive_for_linux.util import routes
+from onedrive_for_linux.util.oauth2_handler import OAuth2Handler
+from onedrive_for_linux.models.onedrive_account import OnedriveAccount
 
 
 def onedrive_login(name):

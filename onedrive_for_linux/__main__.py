@@ -1,10 +1,10 @@
 import logging
 from argparse import ArgumentParser
 
-from . import version
-from .cli_login import onedrive_login
-from .onedrive_account import OnedriveAccount
-from .sync import SyncEngine
+from onedrive_for_linux.util import version
+from onedrive_for_linux.util.cli_login import onedrive_login
+from onedrive_for_linux.models.onedrive_account import OnedriveAccount
+from onedrive_for_linux.sync import SyncEngine
 
 
 def login(args):
