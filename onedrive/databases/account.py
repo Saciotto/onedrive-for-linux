@@ -1,8 +1,11 @@
+from datetime import datetime
+
 from onedrive.helpers.sqlite_table import SqliteTable
+from onedrive.helpers.observer import Observer
+from onedrive.models.account import OnedriveAccount
 
 
-class OnedriveAccountDB(SqliteTable):
-
+class OnedriveAccountTable(SqliteTable):
     def create_table_querry(self):
         return """ 
             CREATE TABLE IF NOT EXISTS accounts (
@@ -14,11 +17,12 @@ class OnedriveAccountDB(SqliteTable):
         """
 
     def save(self, account):
-        name = account[0]
-        if self._contains(name):
-            self._update_account(account)
-        else:
-            self._insert_account(account)
+        querry = """
+            INSERT OR REPLACE INTO accounts (name, access_token, refresh_token, expire_date) VALUES (?,?,?,?);
+        """
+        cur = self.conn.cursor()
+        cur.execute(querry, account)
+        self.conn.commit()
 
     def load(self, name):
         querry = """
@@ -28,32 +32,29 @@ class OnedriveAccountDB(SqliteTable):
         cur.execute(querry, (name,))
         return cur.fetchone()
 
-    def load_all(self):
-        querry = """
-            SELECT * FROM accounts;
-        """
-        cur = self.conn.cursor()
-        cur.execute(querry)
-        return cur.fetchall()
 
-    def _contains(self, id):
-        account = self.load(id)
-        if (account):
-            return True
-        return False
+class AccountObserver(Observer):
+    def update(self, account):
+        expire_date = account.expire_date.isoformat(' ')
+        data = (account.account_id, account.access_token, account.refresh_token, expire_date)
+        with OnedriveAccountTable() as table:
+            table.save(data)
 
-    def _insert_account(self, account):
-        querry = """
-            INSERT INTO accounts (name, access_token, refresh_token, expire_date) VALUES (?,?,?,?);
-        """
-        cur = self.conn.cursor()
-        cur.execute(querry, account)
-        self.conn.commit()
 
-    def _update_account(self, account):
-        querry = """
-            UPDATE accounts SET access_token=?, refresh_token=?, expire_date=? WHERE name=?;
-        """
-        cur = self.conn.cursor()
-        cur.execute(querry, (account[1], account[2], account[3], account[0]))
-        self.conn.commit()
+def observe_account(account, update_now=True):
+    observer = AccountObserver()
+    account.add_observer(observer)
+    if update_now:
+        observer.update(account)
+
+
+def load_account(name):
+    with OnedriveAccountTable() as table:
+        account_db = table.load(name)
+        if not account_db:
+            raise ValueError(f'{name} account was not found.')
+        account_id, access_token, refresh_token, expire_date = account_db
+        expire_date = datetime.fromisoformat(expire_date)
+        account = OnedriveAccount(account_id, access_token, refresh_token, expire_date)
+        observe_account(account, False)
+        return account

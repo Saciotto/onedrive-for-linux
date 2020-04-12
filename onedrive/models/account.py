@@ -3,34 +3,21 @@ from http.server import HTTPServer
 from datetime import datetime, timezone
 
 from onedrive.helpers import onedrive_api
+from onedrive.helpers.subject import Subject
 from onedrive.helpers.oauth2_handler import OAuth2Handler
-from onedrive.databases.account import OnedriveAccountDB
 
 
-class AccountNotFound(Exception):
-    pass
-
-
-class OnedriveAccount:
+class OnedriveAccount(Subject):
 
     def __init__(self, account_id, access_token, refresh_token, expire_date):
-        self.account_id = account_id
-        self.access_token = access_token
-        self.refresh_token = refresh_token
-        self.expire_date = expire_date
+        super().__init__()
+        self.__account_id = account_id
+        self.__access_token = access_token
+        self.__refresh_token = refresh_token
+        self.__expire_date = expire_date
 
     def __str__(self):
         return f'OndriveAccount({self.account_id})"'
-
-    @staticmethod
-    def load(name):
-        with OnedriveAccountDB() as db:
-            account_db = db.load(name)
-        if not account_db:
-            raise AccountNotFound(f'{name} account was not found.')
-        account_id, access_token, refresh_token, expire_date = account_db
-        expire_date = datetime.fromisoformat(expire_date)
-        return OnedriveAccount(account_id, access_token, refresh_token, expire_date)
 
     @staticmethod
     def login(account_id, code):
@@ -47,12 +34,21 @@ class OnedriveAccount:
         code = getattr(server, 'code')
         return OnedriveAccount.login(name, code)
 
-    def save(self):
-        expire_date = self.expire_date.isoformat(' ')
-        data = (self.account_id, self.access_token,
-                self.refresh_token, expire_date)
-        with OnedriveAccountDB() as db:
-            db.save(data)
+    @property
+    def access_token(self):
+        return self.__access_token
+
+    @property
+    def account_id(self):
+        return self.__account_id
+
+    @property
+    def refresh_token(self):
+        return self.__refresh_token
+
+    @property
+    def expire_date(self):
+        return self.__expire_date
 
     def get_defualt_drive(self):
         self._renew_token()
@@ -107,6 +103,6 @@ class OnedriveAccount:
         return onedrive_api.request_upload_status(upload_url)
 
     def _renew_token(self):
-        if self.expire_date <= datetime.now(tz=timezone.utc):
-            self.access_token, self.refresh_token, self.expire_date = onedrive_api.renew_token(self.refresh_token)
-            self.save()
+        if self.__expire_date <= datetime.now(tz=timezone.utc):
+            self.__access_token, self.__refresh_token, self.__expire_date = onedrive_api.renew_token(self.refresh_token)
+            self.notify()

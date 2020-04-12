@@ -2,17 +2,17 @@ import logging
 from argparse import ArgumentParser
 
 from onedrive.models.account import OnedriveAccount
+from onedrive.databases.account import observe_account, load_account
 from onedrive.sync import SyncEngine
 
 APP_VERSION = '1.0.0'
 
 def login(args):
     account = OnedriveAccount.webbrowser_login(args.name)
-    account.save()
-
+    observe_account(account)
 
 def sync(args):
-    account = OnedriveAccount.load(args.name)
+    account = load_account(args.name)
     sync_engine = SyncEngine(account)
     sync_engine.apply_differences()
 
@@ -30,7 +30,7 @@ def monitor(args):
 
 
 def print_token(args):
-    account = OnedriveAccount.load(args.name)
+    account = load_account(args.name)
     print(account.access_token)
 
 
