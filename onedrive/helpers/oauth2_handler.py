@@ -2,6 +2,7 @@ import re
 import json
 from http.server import BaseHTTPRequestHandler
 
+
 class OAuth2Handler(BaseHTTPRequestHandler):
 
     success_message = """

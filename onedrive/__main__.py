@@ -1,14 +1,13 @@
 import logging
 from argparse import ArgumentParser
 
-from onedrive_for_linux.util import version
-from onedrive_for_linux.util.cli_login import onedrive_login
-from onedrive_for_linux.models.onedrive_account import OnedriveAccount
-from onedrive_for_linux.sync import SyncEngine
+from onedrive.models.account import OnedriveAccount
+from onedrive.sync import SyncEngine
 
+APP_VERSION = '1.0.0'
 
 def login(args):
-    account = onedrive_login(args.name)
+    account = OnedriveAccount.webbrowser_login(args.name)
     account.save()
 
 
@@ -67,7 +66,7 @@ subparser.add_argument('name', help='unique name for this account')
 subparser.set_defaults(func=print_token)
 
 parser.add_argument('-v', '--verbose', help='Print more details, useful for debugging', action='store_true')
-parser.add_argument('--version', action='version', version=f'OneDive {version.APP_VERSION}')
+parser.add_argument('--version', action='version', version=f'OneDive {APP_VERSION}')
 
 args = parser.parse_args()
 

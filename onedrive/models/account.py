@@ -1,7 +1,10 @@
+import webbrowser
+from http.server import HTTPServer
 from datetime import datetime, timezone
 
-from onedrive_for_linux.util import onedrive_api
-from onedrive_for_linux.db.onedrive_account_db import OnedriveAccountDB
+from onedrive.helpers import onedrive_api
+from onedrive.helpers.oauth2_handler import OAuth2Handler
+from onedrive.databases.account import OnedriveAccountDB
 
 
 class AccountNotFound(Exception):
@@ -34,9 +37,20 @@ class OnedriveAccount:
         access_token, refresh_token, expire_date = onedrive_api.redeem_token(code)
         return OnedriveAccount(account_id, access_token, refresh_token, expire_date)
 
+    @staticmethod
+    def webbrowser_login(name):
+        url = (f'{onedrive_api.AUTH_URL}?client_id={onedrive_api.CLIENT_ID}&scope={onedrive_api.SCOPES}' +
+               f'&response_type=code&redirect_uri={onedrive_api.REDIRECT_URL}')
+        webbrowser.open(url)
+        server = HTTPServer(('localhost', 8000), OAuth2Handler)
+        server.handle_request()
+        code = getattr(server, 'code')
+        return OnedriveAccount.login(name, code)
+
     def save(self):
         expire_date = self.expire_date.isoformat(' ')
-        data = (self.account_id, self.access_token, self.refresh_token, expire_date)
+        data = (self.account_id, self.access_token,
+                self.refresh_token, expire_date)
         with OnedriveAccountDB() as db:
             db.save(data)
 

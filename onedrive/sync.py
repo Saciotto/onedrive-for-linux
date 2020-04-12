@@ -1,4 +1,5 @@
-from onedrive_for_linux.models.item import Item
+from onedrive.models.item import Item
+
 
 class SyncEngine:
     def __init__(self, account):
