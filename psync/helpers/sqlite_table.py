@@ -19,10 +19,10 @@ class SqliteTable(ABC):
         self.conn.close()
 
     def create_table(self):
-        querry = self.create_table_querry()
+        querry = self.create_table_query()
         cur = self.conn.cursor()
         cur.execute(querry)
 
     @abstractmethod
-    def create_table_querry(self):
+    def create_table_query(self):
         pass
