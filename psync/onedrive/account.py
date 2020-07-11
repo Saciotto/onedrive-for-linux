@@ -49,6 +49,10 @@ class OnedriveAccount(Subject):
     def expire_date(self):
         return self.__expire_date
 
+    def get_user_info(self):
+        self._renew_token()
+        return graph.get_user_info(self.access_token)
+
     def get_defualt_drive(self):
         self._renew_token()
         return graph.get_defualt_drive(self.access_token)
