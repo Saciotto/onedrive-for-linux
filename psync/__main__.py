@@ -1,21 +1,26 @@
 import logging
 from argparse import ArgumentParser
 
-from psync.onedrive.account import OnedriveAccount
-from psync.onedrive import accounts
-
-from psync.sync.user import User
+from psync.sync.profile import Profile
+from psync.sync import profiles
+from psync.sync import config
 
 APP_VERSION = '1.0.0'
 
 def login(args):
-    User.login(args.name)
+    Profile.webbrowser_login(args.name)
 
 def logout(args):
-    accounts.remove(args.name)
+    profiles.remove(args.name)
 
-def users(args):
-    User.list_all()
+def profile_list(args):
+    profiles.print_all()
+
+def set_default_profile(args):
+    config.set_default_profile(args.name)
+
+def print_default_profile(args):
+    print(config.get_default_profile())
 
 parser = ArgumentParser(prog='psycn')
 subparsers = parser.add_subparsers(title='commands', metavar='command', help='description')
@@ -24,12 +29,19 @@ subparser = subparsers.add_parser('login', help='Performs a new user login')
 subparser.add_argument('name', help='unique name for this account')
 subparser.set_defaults(func=login)
 
-subparser = subparsers.add_parser('users', help='Shows a list of logged users')
-subparser.set_defaults(func=users)
+subparser = subparsers.add_parser('list', help='Shows a list of logged users')
+subparser.set_defaults(func=profile_list)
 
-subparser = subparsers.add_parser('logout', help='Removes the user from syncing')
+subparser = subparsers.add_parser('remove', help='Removes the user from syncing')
 subparser.add_argument('name', help='unique name for this account')
 subparser.set_defaults(func=logout)
+
+subparser = subparsers.add_parser('default', help='')
+subparser.add_argument('name')
+subparser.set_defaults(func=set_default_profile)
+
+subparser = subparsers.add_parser('show-default', help='')
+subparser.set_defaults(func=print_default_profile)
 
 parser.add_argument('-v', '--verbose', help='Print more details, useful for debugging', action='store_true')
 parser.add_argument('--version', action='version', version=f'OneDive {APP_VERSION}')

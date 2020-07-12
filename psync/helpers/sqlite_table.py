@@ -11,6 +11,7 @@ class SqliteTable(ABC):
         db_path.mkdir(mode=0o755, parents=True, exist_ok=True)
         db_file = str(db_path / 'onedrive.db')
         self.conn = sqlite3.connect(db_file)
+        self.cur = self.conn.cursor()
         self.create_table()
         return self
 
@@ -19,9 +20,8 @@ class SqliteTable(ABC):
         self.conn.close()
 
     def create_table(self):
-        querry = self.create_table_query()
-        cur = self.conn.cursor()
-        cur.execute(querry)
+        query = self.create_table_query()
+        self.cur.execute(query)
 
     @abstractmethod
     def create_table_query(self):
