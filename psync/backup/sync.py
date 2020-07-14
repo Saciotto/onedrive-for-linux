@@ -7,8 +7,8 @@ class SyncEngine:
         self.folder = '~/onedrive'
 
     def apply_differences(self):
-        self.default_drive_id = self.onedrive.get_defualt_drive()['id']
-        self.root_id = self.onedrive.get_defualt_root()['id']
+        self.default_drive_id = self.onedrive.get_default_drive()['id']
+        self.root_id = self.onedrive.get_default_root()['id']
         self._apply_differences(self.default_drive_id, self.root_id)
 
     def _apply_differences(self, drive_id, file_id):

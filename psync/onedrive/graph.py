@@ -13,7 +13,7 @@ ITEM_BY_ID_URL = 'https://graph.microsoft.com/v1.0/me/drive/items/'
 ITEM_BY_PATH_URL = 'https://graph.microsoft.com/v1.0/me/drive/root:/'
 DRIVE_BY_ID_URL = 'https://graph.microsoft.com/v1.0/drives/'
 
-# Applicaton
+# Application
 REDIRECT_URL = 'http://localhost:8000'
 
 # Request information
@@ -33,7 +33,7 @@ def get_user_info(access_token):
         return json.load(response)
 
 
-def get_defualt_drive(access_token):
+def get_default_drive(access_token):
     url = DRIVE_URL
     headers = {'Authorization': access_token}
     request = Request(url, headers=headers)
@@ -41,7 +41,7 @@ def get_defualt_drive(access_token):
         return json.load(response)
 
 
-def get_defualt_root(access_token):
+def get_default_root(access_token):
     url = f'{DRIVE_URL}/root'
     headers = headers = {'Authorization': access_token}
     request = Request(url, headers=headers)

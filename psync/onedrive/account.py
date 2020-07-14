@@ -53,13 +53,13 @@ class OnedriveAccount(Subject):
         self._renew_token()
         return graph.get_user_info(self.access_token)
 
-    def get_defualt_drive(self):
+    def get_default_drive(self):
         self._renew_token()
-        return graph.get_defualt_drive(self.access_token)
+        return graph.get_default_drive(self.access_token)
 
-    def get_defualt_root(self):
+    def get_default_root(self):
         self._renew_token()
-        return graph.get_defualt_root(self.access_token)
+        return graph.get_default_root(self.access_token)
 
     def view_changes_by_id(self, drive_id, file_id, url=None):
         self._renew_token()
